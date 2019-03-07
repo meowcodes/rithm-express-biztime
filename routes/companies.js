@@ -70,7 +70,58 @@ router.post("", async function (req, res, next) {
     }
 });
 
+/** Updates a company: {company: {code, name, description}} */
+router.put("/:code", async function (req, res, next) {
+    try {
+        let code = req.params.code;
+        
+        const original = await db.query(`
+            SELECT name, description 
+            FROM companies 
+            WHERE code=$1`, [code]
+        );
+        let name = req.body.name || original.rows[0].name;
+        let description = req.body.description || original.rows[0].description;
 
+        if(name.length === 0 || code.length === 0){
+            throw new ExpressError("Invalid Input.", 400);
+        }
+
+        const result = await db.query(`
+            UPDATE companies SET name=$1, description=$2
+            WHERE code=$3
+            RETURNING code, name, description`, 
+            [name, description, code]
+        );
+
+        return res.json({company: result.rows[0]});
+    }
+    catch (err) {
+        if(!(err instanceof ExpressError)){
+            const dbError = new ExpressError("Invalid Code.", 409)
+            return next(dbError);
+        }
+        return next(err)
+    }
+});
+
+/** Deletes company, returning {message: "Deleted"} */
+router.delete("/:code", async function (req, res, next) {
+    try {
+        const result = await db.query(
+            `DELETE FROM companies WHERE code=$1`,
+            [req.params.code]
+        );
+        if (!result.rowCount){
+            throw new ExpressError("Invalid code.", 400);
+        }
+        return res.json({message: "deleted"});
+    }
+  
+    catch (err) {
+        return next(err);
+    }
+});
 
 
 
