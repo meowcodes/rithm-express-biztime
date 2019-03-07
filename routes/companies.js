@@ -19,22 +19,31 @@ router.get("", async function (req, res, next) {
     }
 });
 
-/** Get one company: {company: {code, name, description}} */
+/** Get one company: {company: {code, name, description, invoices: [id, ...]}}*/
 router.get("/:code", async function (req, res, next) {
     try {
-        code = req.params.code
+        let code = req.params.code
 
-        const result = await db.query(`
+        const compRes = await db.query(`
             SELECT code, name, description 
             FROM companies
             WHERE code=$1`, [code]
         );
 
-        if(!result.rowCount){
+        if(!compRes.rowCount){
             throw new ExpressError("Company not found.", 404)
         }
 
-        return res.json({company: result.rows[0]});
+        const invoiceRes = await db.query (`
+            SELECT *
+            FROM invoices
+            WHERE comp_code=$1`, [code]
+        )
+
+        const company = compRes.rows[0];
+        company.invoices = invoiceRes.rows
+
+        return res.json({company});
     }
     catch (err) {
       return next(err);
@@ -44,9 +53,9 @@ router.get("/:code", async function (req, res, next) {
 /** Adds a company: {company: {code, name, description}} */
 router.post("", async function (req, res, next) {
     try {
-        code = req.body.code
-        name = req.body.name
-        description = req.body.description || null
+        let code = req.body.code
+        let name = req.body.name
+        let description = req.body.description || null
 
         if(name.length === 0 || code.length === 0){
             throw new ExpressError("Invalid Input.", 400)
@@ -94,6 +103,11 @@ router.put("/:code", async function (req, res, next) {
             [name, description, code]
         );
 
+        if(!result.rowCount){
+            throw new ExpressError("Company not found.", 404)
+        }
+
+
         return res.json({company: result.rows[0]});
     }
     catch (err) {
@@ -105,7 +119,7 @@ router.put("/:code", async function (req, res, next) {
     }
 });
 
-/** Deletes company, returning {message: "Deleted"} */
+/** Deletes company, returning {message: "deleted"} */
 router.delete("/:code", async function (req, res, next) {
     try {
         const result = await db.query(
@@ -122,8 +136,6 @@ router.delete("/:code", async function (req, res, next) {
         return next(err);
     }
 });
-
-
 
 
 module.exports = router;
