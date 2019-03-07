@@ -68,7 +68,7 @@ router.post("", async function (req, res, next) {
             [code, name, description]
         );
 
-        return res.json({company: result.rows[0]});
+        return res.status(201).json({company: result.rows[0]});
     }
     catch (err) {
         if(!(err instanceof ExpressError)){
@@ -92,21 +92,12 @@ router.put("/:code", async function (req, res, next) {
         let name = req.body.name || original.rows[0].name;
         let description = req.body.description || original.rows[0].description;
 
-        if(name.length === 0 || code.length === 0){
-            throw new ExpressError("Invalid Input.", 400);
-        }
-
         const result = await db.query(`
             UPDATE companies SET name=$1, description=$2
             WHERE code=$3
             RETURNING code, name, description`, 
             [name, description, code]
         );
-
-        if(!result.rowCount){
-            throw new ExpressError("Company not found.", 404)
-        }
-
 
         return res.json({company: result.rows[0]});
     }
@@ -126,7 +117,9 @@ router.delete("/:code", async function (req, res, next) {
             `DELETE FROM companies WHERE code=$1`,
             [req.params.code]
         );
+        console.log(result)
         if (!result.rowCount){
+            console.log("HERE")
             throw new ExpressError("Invalid code.", 400);
         }
         return res.json({message: "deleted"});

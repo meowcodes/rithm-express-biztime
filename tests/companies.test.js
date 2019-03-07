@@ -57,8 +57,84 @@ describe("/companies/:code", async function () {
         expect(response.body.company.description).toEqual(company.description);
     });
 
-    test("Responds with 404 if can't find cat", async function(){
+    test("Responds with 404 if can't find company", async function () {
         const response = await request(app).get('/companies/0');
         expect(response.statusCode).toEqual(404);
     });
+});
+
+/** POST /companies - create companys from data; return `{company: company}` */
+describe("POST /companies", async function () {
+    test("Creates a new company", async function () {
+        const response = await request(app)
+            .post(`/companies`)
+            .send({
+                code: "whiskey",
+                name: "Whiskey Co.",
+                description: "Begs for food."
+            });
+        expect(response.statusCode).toEqual(201);
+        expect(response.body.company).toHaveProperty("code");
+        expect(response.body.company).toHaveProperty("name");
+        expect(response.body.company.name).toEqual("Whiskey Co.");
+    });
+    test("Responds with 400 if name or code is invalid", async function () {
+        const response = await request(app)
+            .post(`/companies`)
+            .send({
+                code: "",
+                name: "Whiskey Co."
+            });
+        expect(response.statusCode).toEqual(400);
+    });
+    test("Responds with 409 if code already exists", async function () {
+        const response = await request(app)
+            .post(`/companies`)
+            .send({
+                code: "apple",
+                name: "Apple"
+            });
+        expect(response.statusCode).toEqual(409);
+    });
+});
+
+/** PUT /companies/[code] - update company; return `{company: company}` */
+
+describe("PUT /companies/:code", async function () {
+    test("Updates a single company", async function () {
+        const response = await request(app)
+            .put(`/companies/${company.code}`)
+            .send({
+                name: "Banana"
+            });
+        expect(response.statusCode).toEqual(200);
+        expect(response.body.company).toEqual({
+            code: company.code,
+            description: company.description,
+            name: "Banana"
+        });
+    });
+
+    test("Responds with 409 if can't find company", async function () {
+        const response = await request(app)
+            .put(`/companies/applesss`);
+        expect(response.statusCode).toEqual(409);
+    });
+});
+
+/** DELETE /companies/[code] - delete company, 
+ *  return `{message: "deleted"}` */
+
+describe("DELETE /companies/:code", async function () {
+    test("Deletes a single a company", async function () {
+        const response = await request(app)
+            .delete(`/companies/${company.code}`);
+        expect(response.statusCode).toEqual(200);
+        expect(response.body).toEqual({ message: "deleted" });
+    });
+    test("Responds with 400 if can't find company", async function() {
+        const response = await request(app)
+            .delete(`/companies/banana`);
+        expect(response.statusCode).toEqual(400);
+    })
 });
