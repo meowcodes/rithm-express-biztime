@@ -38,7 +38,7 @@ afterAll(async function () {
     await db.end();
 });
 
-describe("/companies", async function () {
+describe("GET /companies", async function () {
     test("Gets a list of 1 company", async function () {
         const response = await request(app).get(`/companies`);
         const { companies } = response.body;
@@ -49,7 +49,7 @@ describe("/companies", async function () {
     });
 });
 
-describe("/companies/:code", async function () {
+describe("GET /companies/:code", async function () {
     test("Gets a single company", async function () {
         const response = await request(app).get(`/companies/${company.code}`);
         expect(response.statusCode).toEqual(200);

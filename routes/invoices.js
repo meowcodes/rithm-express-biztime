@@ -73,7 +73,7 @@ router.post("", async function (req, res, next) {
             [compCode, amt]
         );
 
-        return res.json({company: result.rows[0]});
+        return res.status(201).json({invoice: result.rows[0]});
     }
     catch (err) {
         if(!(err instanceof ExpressError)){
@@ -135,6 +135,10 @@ router.delete("/:id", async function (req, res, next) {
     }
   
     catch (err) {
+        if(!(err instanceof ExpressError)){
+            const dbError = new ExpressError("Invalid invoice ID.", 409)
+            return next(dbError);
+        }
         return next(err);
     }
 });
