@@ -19,9 +19,9 @@ which node
 npm install -g nodemon
 npm install -g jest
 createdb biztime
-psql biztime < data.sql
+psql biztime < seed-data/data.sql
 createdb biztime-test 
-psql biztime < data-test.sql
+psql biztime < seed-data/data-test.sql
 ```
 
 ### Installing
