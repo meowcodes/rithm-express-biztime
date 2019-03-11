@@ -54,8 +54,6 @@ Go to `about:inspect` on Google Chrome and find the app under 'Remote Target'
 
 ## Deployment
 
--
-
 ## Built with
 
 * [Node](https://nodejs.org/en/) - The server-side environment user
